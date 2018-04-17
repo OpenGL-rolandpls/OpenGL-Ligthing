@@ -6,8 +6,8 @@ import sys
 import numpy
 import _thread
 from math import *
-from OpenGL.GL import *
 from OpenGL.GLU import *
+from OpenGL.GL import *
 from OpenGL.GLUT import *
 from tkinter import *
 from PIL import Image
@@ -51,6 +51,8 @@ ambient_b = 0.0
 diffuse_r = 1.0
 diffuse_g = 1.0
 diffuse_b = 1.0
+
+shine = 10.0
 
 
 # --CLASSES--
@@ -137,13 +139,14 @@ def showSlider():
 	global spec_r, spec_g, spec_b
 	global ambient_r, ambient_g, ambient_b
 	global diffuse_r, diffuse_g, diffuse_b
+	global shine
 
 	thread = Tk()
 	thread.title('Brightness')
 	#~ slider = Insert(END, "Set Brightness\n")
 	slider = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL)
 	slider.pack()
-	diffuse_r = slider.get()
+	shine = slider.get()
 	print(slider.get())
 	#main()
 	thread.mainloop()
@@ -155,6 +158,7 @@ def renderLight():
 	global spec_r, spec_g, spec_b
 	global ambient_r, ambient_g, ambient_b
 	global diffuse_r, diffuse_g, diffuse_b
+	global shine
 	
 	glEnable(GL_LIGHT0)
 	glEnable(GL_LIGHTING)
@@ -171,10 +175,15 @@ def renderLight():
 	
 	specReflection = [spec_r, spec_g, spec_b]
 	glLightfv(GL_LIGHT0, GL_POSITION, [4.0, 4.0, 4.0, 1.0])
+	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ]
+	mat_shininess = [shine]
+	#~ light_position = [ 1.0, 1.0, 1.0, 0.0 ]
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular)
+	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess)
 	glMaterialfv(GL_FRONT, GL_AMBIENT, [ambient_r, ambient_g, ambient_b, 1.0])
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse_r, diffuse_g, diffuse_b, 1.0])
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
-	glMateriali(GL_FRONT, GL_SHININESS, 10)
+	glMateriali(GL_FRONT, GL_SHININESS, shine)
 
 def drawCar():
 	global data
@@ -653,8 +662,8 @@ def main():
 	#thread2 = _thread.start_new_thread(main1,())	
 
 def updateValue(event):
-	global diffuse_r
-	diffuse_r = diff_r.get()/100.0
+	global shine
+	shine = 100 - diff_r.get()
 
 thread.title('Brightness')
 #~ slider = Insert(END, "Set Brightness\n")
