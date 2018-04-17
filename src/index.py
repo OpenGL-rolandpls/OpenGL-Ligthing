@@ -178,12 +178,12 @@ def renderLight():
 	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ]
 	mat_shininess = [shine]
 	#~ light_position = [ 1.0, 1.0, 1.0, 0.0 ]
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular)
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess)
 	glMaterialfv(GL_FRONT, GL_AMBIENT, [ambient_r, ambient_g, ambient_b, 1.0])
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse_r, diffuse_g, diffuse_b, 1.0])
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
-	glMateriali(GL_FRONT, GL_SHININESS, shine)
+	#glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
+	#glMateriali(GL_FRONT, GL_SHININESS, shine)
 
 def drawCar():
 	global data
@@ -437,6 +437,7 @@ def drawCar():
 	glVertex3f(2.985, -0.65, -z-0.0015)
 	glVertex3f(2.95, -0.65, -z-0.0015)
 	glEnd()
+	'''
 	#front window glass
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glEnable(GL_BLEND)
@@ -484,7 +485,7 @@ def drawCar():
 	glVertex3f(-2.99, 1.0, -z+0.5)
 	glEnd()
 	glDisable(GL_BLEND)
-
+	'''
 	loadTexture(data[1],dim1[2],dim1[3])
 	glEnable(GL_TEXTURE_2D)
 	# Car's Wheel
@@ -662,14 +663,65 @@ def main():
 	#thread2 = _thread.start_new_thread(main1,())	
 
 def updateValue(event):
+	global spec_r, spec_g, spec_b
+	global ambient_r, ambient_g, ambient_b
+	global diffuse_r, diffuse_g, diffuse_b
 	global shine
-	shine = 100 - diff_r.get()
+	shine = 100 - shine_val.get()
+	diffuse_r = diff_r.get()/100.0
+	diffuse_g = diff_g.get()/100.0
+	diffuse_b = diff_b.get()/100.0
+
+	spec_r = spc_r.get()/100.0
+	spec_g = spc_g.get()/100.0
+	spec_b = spc_b.get()/100.0
+
+	ambient_r = amb_r.get()/100.0
+	ambient_g = amb_g.get()/100.0
+	ambient_b = amb_b.get()/100.0
 
 thread.title('Brightness')
 #~ slider = Insert(END, "Set Brightness\n")
+shine_val = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+shine_val.set(0)
+shine_val.pack()
+
 diff_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
 diff_r.set(0)
 diff_r.pack()
+
+diff_g = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+diff_g.set(0)
+diff_g.pack()
+
+diff_b = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+diff_b.set(0)
+diff_b.pack()
+
+spc_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+spc_r.set(0)
+spc_r.pack()
+
+spc_g = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+spc_g.set(0)
+spc_g.pack()
+
+spc_b = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+spc_b.set(0)
+spc_b.pack()
+
+amb_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+amb_r.set(0)
+amb_r.pack()
+
+amb_g = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+amb_g.set(0)
+amb_g.pack()
+
+amb_b = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+amb_b.set(0)
+amb_b.pack()
+
 #print(slider.get())
 _thread.start_new_thread(main, ())
 thread.mainloop()
