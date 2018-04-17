@@ -40,17 +40,11 @@ dim1 = []
 dim2 = []
 
 # lighting
-spec_r = 1.0
-spec_g = 1.0
-spec_b = 1.0
+spec = 1.0
 
-ambient_r = 0.0
-ambient_g = 0.0
-ambient_b = 0.0
+ambient = 1.0
 
-diffuse_r = 1.0
-diffuse_g = 1.0
-diffuse_b = 1.0
+diffuse = 1.0
 
 shine = 10.0
 
@@ -136,9 +130,9 @@ def idle():
 
 # Slider Thread
 def showSlider():
-	global spec_r, spec_g, spec_b
-	global ambient_r, ambient_g, ambient_b
-	global diffuse_r, diffuse_g, diffuse_b
+	global spec
+	global ambient
+	global diffuse
 	global shine
 
 	thread = Tk()
@@ -155,9 +149,9 @@ def showSlider():
 
 # Lighting
 def renderLight():
-	global spec_r, spec_g, spec_b
-	global ambient_r, ambient_g, ambient_b
-	global diffuse_r, diffuse_g, diffuse_b
+	global spec
+	global ambient
+	global diffuse
 	global shine
 	
 	glEnable(GL_LIGHT0)
@@ -173,21 +167,33 @@ def renderLight():
 	#glColorMaterial(GL_FRONT, GL_DIFFUSE)
 	glEnable(GL_TEXTURE_2D)
 	
-	specReflection = [spec_r, spec_g, spec_b]
+	specReflection = [spec, spec, spec]
 	glLightfv(GL_LIGHT0, GL_POSITION, [4.0, 4.0, 4.0, 1.0])
 	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ]
 	mat_shininess = [shine]
 	#~ light_position = [ 1.0, 1.0, 1.0, 0.0 ]
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess)
-	glMaterialfv(GL_FRONT, GL_AMBIENT, [ambient_r, ambient_g, ambient_b, 1.0])
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse_r, diffuse_g, diffuse_b, 1.0])
+	glMaterialfv(GL_FRONT, GL_AMBIENT, [ambient, ambient, ambient, 1.0])
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse, diffuse, diffuse, 1.0])
 	#glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
 	#glMateriali(GL_FRONT, GL_SHININESS, shine)
 
 def drawCar():
 	global data
 	z = 1.5 
+
+	# Road
+	loadTexture(data[2],dim1[4],dim1[5])
+	glEnable(GL_TEXTURE_2D)
+	glColor3f(206/255, 20/255, 55/255)
+	glBegin(GL_QUADS)
+	glTexCoord2f(0.0, 0.0); glVertex3f(-10.0, -1.6, -z -2.0)
+	glTexCoord2f(1.0, 0.0); glVertex3f(10.0, -1.6, -z -2.0)
+	glTexCoord2f(1.0, 1.0); glVertex3f(10.0, -1.6, z + 2.0) 
+	glTexCoord2f(0.0, 1.0); glVertex3f(-10.0, -1.6, z + 2.0)
+	glEnd()
+	glDisable(GL_TEXTURE_2D)
 
 	loadTexture(data[0],dim1[0],dim1[1])
 	#back window frame
@@ -535,7 +541,7 @@ def drawCar():
 # Initialization
 def InitGL(Width, Height): 
  
-	glClearColor(0.0, 0.0, 0.0, 0.0)
+	glClearColor(0.4, 0.4, 0.9, 1.0)
 	glClearDepth(1.0) 
 	glDepthFunc(GL_LESS)
 	glEnable(GL_DEPTH_TEST)
@@ -650,6 +656,11 @@ def main():
 	dim1.append(y2)
 	data.append(arr2)
 
+	arr, x, y = loadImage("../img/road.jpg")
+	dim1.append(x)
+	dim1.append(y)
+	data.append(arr)
+
 	# arr, x, y = loadImage("../img/tes.jpg")
 	# dim2.append(x)
 	# dim2.append(y)
@@ -663,22 +674,16 @@ def main():
 	#thread2 = _thread.start_new_thread(main1,())	
 
 def updateValue(event):
-	global spec_r, spec_g, spec_b
-	global ambient_r, ambient_g, ambient_b
-	global diffuse_r, diffuse_g, diffuse_b
+	global spec
+	global ambient
+	global diffuse
 	global shine
 	shine = 100 - shine_val.get()
-	diffuse_r = diff_r.get()/100.0
-	diffuse_g = diff_g.get()/100.0
-	diffuse_b = diff_b.get()/100.0
+	diffuse = diff.get()/100.0
 
-	spec_r = spc_r.get()/100.0
-	spec_g = spc_g.get()/100.0
-	spec_b = spc_b.get()/100.0
+	spec = spc.get()/100.0
 
-	ambient_r = amb_r.get()/100.0
-	ambient_g = amb_g.get()/100.0
-	ambient_b = amb_b.get()/100.0
+	ambient = amb.get()/100.0
 
 thread.title('Brightness')
 #~ slider = Insert(END, "Set Brightness\n")
@@ -686,41 +691,18 @@ shine_val = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updat
 shine_val.set(0)
 shine_val.pack()
 
-diff_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-diff_r.set(0)
-diff_r.pack()
+diff = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+diff.set(0)
+diff.pack()
 
-diff_g = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-diff_g.set(0)
-diff_g.pack()
+spc = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+spc.set(0)
+spc.pack()
 
-diff_b = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-diff_b.set(0)
-diff_b.pack()
+amb = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+amb.set(0)
+amb.pack()
 
-spc_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-spc_r.set(0)
-spc_r.pack()
-
-spc_g = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-spc_g.set(0)
-spc_g.pack()
-
-spc_b = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-spc_b.set(0)
-spc_b.pack()
-
-amb_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-amb_r.set(0)
-amb_r.pack()
-
-amb_g = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-amb_g.set(0)
-amb_g.pack()
-
-amb_b = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-amb_b.set(0)
-amb_b.pack()
 
 #print(slider.get())
 _thread.start_new_thread(main, ())
