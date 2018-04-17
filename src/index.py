@@ -4,12 +4,12 @@
 # --Libraries and Packages--
 import sys
 import numpy
-import thread
+import _thread
 from math import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from Tkinter import *
+from tkinter import *
 from PIL import Image
 
 # --Camera Settings--
@@ -38,6 +38,20 @@ mouseDown = False
 data = []
 dim1 = []
 dim2 = []
+
+# lighting
+spec_r = 1.0
+spec_g = 1.0
+spec_b = 1.0
+
+ambient_r = 0.0
+ambient_g = 0.0
+ambient_b = 0.0
+
+diffuse_r = 1.0
+diffuse_g = 1.0
+diffuse_b = 1.0
+
 
 # --CLASSES--
 class Camera:
@@ -120,16 +134,28 @@ def idle():
 
 # Slider Thread
 def showSlider():
-		
+	global spec_r, spec_g, spec_b
+	global ambient_r, ambient_g, ambient_b
+	global diffuse_r, diffuse_g, diffuse_b
+
 	thread = Tk()
 	thread.title('Brightness')
 	#~ slider = Insert(END, "Set Brightness\n")
 	slider = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL)
 	slider.pack()
+	diffuse_r = slider.get()
+	print(slider.get())
+	#main()
 	thread.mainloop()
+	#thread.update_idletasks()
+	#thread.update()
 
 # Lighting
 def renderLight():
+	global spec_r, spec_g, spec_b
+	global ambient_r, ambient_g, ambient_b
+	global diffuse_r, diffuse_g, diffuse_b
+	
 	glEnable(GL_LIGHT0)
 	glEnable(GL_LIGHTING)
 
@@ -139,14 +165,16 @@ def renderLight():
 	
 	glShadeModel(GL_SMOOTH)
 	
-	glEnable(GL_COLOR_MATERIAL)
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE)
+	#glEnable(GL_COLOR_MATERIAL)
+	#glColorMaterial(GL_FRONT, GL_DIFFUSE)
 	glEnable(GL_TEXTURE_2D)
 	
-	specReflection = [1.0, 1.0, 1.0, 1.0]
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)
-	glMateriali(GL_FRONT, GL_SHININESS, 30)
-	glLightfv(GL_LIGHT0, GL_POSITION, [2.0, 2.0, 2.0, 1.0])
+	specReflection = [spec_r, spec_g, spec_b]
+	glLightfv(GL_LIGHT0, GL_POSITION, [4.0, 4.0, 4.0, 1.0])
+	glMaterialfv(GL_FRONT, GL_AMBIENT, [ambient_r, ambient_g, ambient_b, 1.0])
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse_r, diffuse_g, diffuse_b, 1.0])
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
+	glMateriali(GL_FRONT, GL_SHININESS, 10)
 
 def drawCar():
 	global data
@@ -154,9 +182,11 @@ def drawCar():
 
 	loadTexture(data[0],dim1[0],dim1[1])
 	#back window frame
+	
 	glEnable(GL_TEXTURE_2D)
 	glColor3f(206/255, 20/255, 55/255)
 	glBegin(GL_QUADS)
+	glNormal3f(1.0,1.0,1.0)	
 	glTexCoord2f(0.0, 0.0); glVertex3f(-3.0, 0.25, -z)
 	glTexCoord2f(1.0, 0.0); glVertex3f(-3.0, 0.25, z)
 	glTexCoord2f(1.0, 1.0); glVertex3f(-3.0, -1.0, z)
@@ -450,6 +480,7 @@ def drawCar():
 	glEnable(GL_TEXTURE_2D)
 	# Car's Wheel
 	glColor3f(0.0, 0.0, 0.0)
+	# quadric = gluNewQuadric()
 	quadric = gluNewQuadric()
 	gluQuadricNormals(quadric, GLU_SMOOTH)
 	gluQuadricTexture(quadric, GL_TRUE)
@@ -508,7 +539,7 @@ def InitGL(Width, Height):
 	glEnable(GL_TEXTURE_2D)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
  
 def DrawGLScene():
 	#global X_AXIS,Y_AXIS,Z_AXIS
@@ -578,11 +609,11 @@ def loadTexture(data, ix, iy):
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
-      
+thread = Tk()      
 def main():
-	global data, dim1, dim2
+	global data, dim1, dim2, thread
 	glutInit(sys.argv)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
 	glutInitWindowSize(640,480)
@@ -615,7 +646,22 @@ def main():
 	# data.append(arr)
 	
 	glutMainLoop()
- 
-if __name__ == "__main__":
-	thread = thread.start_new_thread(showSlider, ())	
-	main() 
+	
+#if __name__ == "__main__":
+	#thread = _thread.start_new_thread(showSlider, ())	
+	#showSlider()
+	#thread2 = _thread.start_new_thread(main1,())	
+
+def updateValue(event):
+	global diffuse_r
+	diffuse_r = diff_r.get()/100.0
+
+thread.title('Brightness')
+#~ slider = Insert(END, "Set Brightness\n")
+diff_r = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+diff_r.set(0)
+diff_r.pack()
+#print(slider.get())
+_thread.start_new_thread(main, ())
+thread.mainloop()
+	
