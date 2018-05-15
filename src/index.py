@@ -739,10 +739,30 @@ def drawCar():
 	gluDisk(quadric, 0.2, 0.4, 15, 15)
 	glDisable(GL_TEXTURE_2D)
 
+	#car's exhaust
+	loadTexture(data[7],dim1[14],dim1[15])
+	glEnable(GL_TEXTURE_2D)
+	glColor3f(0.0, 0.0, 0.0)
+	quadric = gluNewQuadric()
+	gluQuadricNormals(quadric, GLU_SMOOTH)
+	gluQuadricTexture(quadric, GL_TRUE)
+
+	glTranslatef(-4.95,0,3.01)
+	glRotatef(90.0,0.0,1.0,0.0)
+	gluCylinder(quadric,0.1,0.1,0.6,15,15)
+	gluDisk(quadric, 0, 0.1, 15, 15)
+
+	glTranslatef(0,0,-0.25)
+	gluCylinder(quadric,0.05,0.05,0.6,15,15)
+	gluDisk(quadric, 0, 0.05, 15, 15)
+	glRotatef(270.0,0.0,1.0,0.0)
+	glTranslatef(4.95,-0,-3.01)
+	glDisable(GL_TEXTURE_2D)
+
 def glCreateParticles():
 	if(Particle != None):
 		for i in range(0,ParticleCount-1):
-			Particle[i].Xpos = -4.5
+			Particle[i].Xpos = -4.95
 			Particle[i].Ypos = 0
 			Particle[i].Zpos = 3
 			Particle[i].Xmov = (((((( (2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) *random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
@@ -774,7 +794,7 @@ def glUpdateParticles():
 
 		Particle[i].Scalez+=0.005
 		if (Particle[i].Xpos < -8 or Particle[i].Xpos > 10):
-			Particle[i].Xpos = -4.5
+			Particle[i].Xpos = -4.95
 			Particle[i].Ypos = 0
 			Particle[i].Zpos = 3
 			Particle[i].Red = 1
@@ -923,6 +943,11 @@ def main():
 	data.append(arr)
 	
 	arr, x, y = loadImage("../img/grass.jpg")
+	dim1.append(x)
+	dim1.append(y)
+	data.append(arr)
+	
+	arr, x, y = loadImage("../img/exhaust.jpg")
 	dim1.append(x)
 	dim1.append(y)
 	data.append(arr)
