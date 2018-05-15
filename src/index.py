@@ -791,7 +791,7 @@ def glUpdateParticles():
 # Initialization
 def InitGL(Width, Height): 
  
-	glClearColor(0.4, 0.4, 0.9, 1.0)
+	glClearColor(0.88, 0.92, 0.96, 1.0)
 	glClearDepth(1.0) 
 	glDepthFunc(GL_LESS)
 	glEnable(GL_DEPTH_TEST)
