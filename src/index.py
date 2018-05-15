@@ -14,6 +14,17 @@ from OpenGL.GLUT import *
 from tkinter import *
 from PIL import Image
 
+# --Constant and Global Variables--
+# --Particles Settings--
+MAX_PARTICLES = 1000
+
+slowdown = 2.0
+velocity = 0.0
+zoom = -40.0
+pan = 0.0
+tilt = 0.0
+accum = -10.0
+
 # --Camera Settings--
 # Camera Angle
 angle = 0.0
@@ -37,11 +48,12 @@ ydiff = 0.0
 
 mouseDown = False
 
+# Texture
 data = []
 dim1 = []
 dim2 = []
 
-# lighting
+# Lighting
 spec = 1.0
 
 ambient = 1.0
@@ -52,6 +64,24 @@ shine = 10.0
 
 
 # --CLASSES--
+class Particles:
+	# Life
+	alive = False	# Is the particle alive
+	life = 0.0		# Particle lifespan
+	fade = 0.0 		# Decay
+	# Color
+	red = 0.0
+	green = 0.0
+	blue = 0.0
+	# Position/direction
+	xPos = 0.0
+	yPos = 0.0
+	zPos = 0.0
+	# Velocity/Direction, only goes down in y dir
+	vel = 0.0
+	# Gravity
+	gravity = 0.0
+
 class Camera:
 	def __init__(self):
 		self.position = (0.0, 0.0, 0.0)
@@ -84,8 +114,10 @@ class PARTICLES:
 	Deceleration = 0.0
 	Scalez = 0.0
 	Visible = False
-		
+
+# Invoke Class
 camera = Camera()
+particle = [Particles() for i in range(0,MAX_PARTICLES)]
 texture = []
 ParticleCount = 100
 Particle = [PARTICLES() for i in range(0,ParticleCount-1)]
@@ -148,24 +180,63 @@ def idle():
 		else:
 			yrot = 0			
 
-# Slider Thread
-# def showSlider():
-# 	global spec
-# 	global ambient
-# 	global diffuse
-# 	global shine
+# Rain Particle System
+def initParticles(i):
+	particle[i].alive = True
+	particle[i].life = 1.0
+	particle[i].fade = (random.random() %100) /1000.0 +0.003
 
-# 	thread = Tk()
-# 	thread.title('Brightness')
-# 	#~ slider = Insert(END, "Set Brightness\n")
-# 	slider = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL)
-# 	slider.pack()
-# 	shine = slider.get()
-# 	print(slider.get())
-# 	#main()
-# 	thread.mainloop()
-# 	#thread.update_idletasks()
-# 	#thread.update()
+	particle[i].xPos = random.randint(-20,20)
+	particle[i].yPos = random.randint(5,10)
+	particle[i].zPos = random.randint(20,60)
+
+	particle[i].red = 0.5
+	particle[i].green = 0.5
+	particle[i].blue = 1.0
+
+	particle[i].vel = velocity
+	particle[i].gravity = -(random.uniform(1.0,2.0))
+	
+def init():
+	glShadeModel(GL_SMOOTH)
+	glClearColor(0.0, 0.0, 0.0, 0.0)
+	glClearDepth(1.0)
+	glEnable(GL_DEPTH_TEST)
+
+	# Initialize particles
+	for loop in range(0, MAX_PARTICLES):
+		initParticles(loop)
+		
+def drawRain():
+	loadTexture(data[0],dim1[0],dim1[1])
+	glEnable(GL_TEXTURE_2D)
+	for loop in range(0, MAX_PARTICLES, 2):
+		if (particle[loop].alive == True):
+			x = particle[loop].xPos
+			y = particle[loop].yPos
+			z = particle[loop].zPos + zoom
+
+			# Draw particles
+			glColor3f(0.5, 0.5, 1.0)
+			glBegin(GL_LINES)
+			glVertex3f(x, y, z)
+			glVertex3f(x, y+0.5, z)
+			glEnd()
+
+			# Update values
+			# Move
+			# Adjust slowdown for speed!
+			particle[loop].yPos += particle[loop].vel / (slowdown*10)
+			particle[loop].vel += particle[loop].gravity
+			# Decay
+			particle[loop].life -= particle[loop].fade
+
+			if (particle[loop].yPos <= 0):
+				particle[loop].life = -1.0
+			# Revive
+			if (particle[loop].life < 0.0):
+				initParticles(loop)
+	glDisable(GL_TEXTURE_2D)
 
 # Lighting
 def renderLight():
@@ -183,21 +254,16 @@ def renderLight():
 	
 	glShadeModel(GL_SMOOTH)
 	
-	#glEnable(GL_COLOR_MATERIAL)
-	#glColorMaterial(GL_FRONT, GL_DIFFUSE)
 	glEnable(GL_TEXTURE_2D)
 	
 	specReflection = [spec, spec, spec]
 	glLightfv(GL_LIGHT0, GL_POSITION, [4.0, 4.0, 4.0, 1.0])
 	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ]
 	mat_shininess = [shine]
-	#~ light_position = [ 1.0, 1.0, 1.0, 0.0 ]
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess)
 	glMaterialfv(GL_FRONT, GL_AMBIENT, [ambient, ambient, ambient, 1.0])
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse, diffuse, diffuse, 1.0])
-	#glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
-	#glMateriali(GL_FRONT, GL_SHININESS, shine)
 
 def displaySmoke():
 	for i in range(0,ParticleCount-1):
@@ -211,8 +277,6 @@ def displaySmoke():
 
 		glEnable (GL_BLEND)
 		glBlendFunc (GL_DST_COLOR, GL_ZERO)
-
-		# glBindTexture (GL_TEXTURE_2D, int(texture[0]))
 
 		s = 0.3
 		glBegin (GL_QUADS)
@@ -260,16 +324,11 @@ def displaySmoke():
 
 		glBlendColor(30/256,30/256,30/256,256/256)
 		glBlendFunc (GL_CONSTANT_COLOR, GL_CONSTANT_COLOR)
-		#glBindTexture (GL_TEXTURE_2D, int(texture[1]))
 
 		glBegin (GL_QUADS)
-		# glTexCoord2d (0, 0)
 		glVertex3f (-s, -s, s)
-		# glTexCoord2d (1, 0)
 		glVertex3f (s, -s, s)
-		# glTexCoord2d (1, 1)
 		glVertex3f (s, s, s)
-		# glTexCoord2d (0, 1)
 		glVertex3f (-s, s, s)
 		glEnd()
 
@@ -313,17 +372,11 @@ def displaySmoke():
 		glPopMatrix()
 
 def LoadTextureRAW(filename,width,height):
-	# GLuint texture;
-	# unsigned char * data;
-	# FILE * file;
 	file = open( filename, "rb" )
 	if ( file == None ): 
 		return 0
 
 	data = file.read()
-	# data = (unsigned char *)malloc( width * height * 3 );
-
-	# fread( data, width * height * 3, 1, file );
 	file.close()
 
 	texture = 0
@@ -344,6 +397,23 @@ def LoadTextureRAW(filename,width,height):
 
 	return texture
 
+# Terrain
+def drawTerrain():
+	global data
+	z = 1.5
+	
+	loadTexture(data[6], dim1[12], dim1[13])
+	glEnable(GL_TEXTURE_2D)
+	for i in range(-2,2):
+		for j in range(-2,2):
+			glBegin(GL_QUADS)
+			glTexCoord2f(0.0, 0.0); glVertex3f(0.0+i*10, -1.65, 0.0+j*10)
+			glTexCoord2f(1.0, 0.0); glVertex3f(10.0+i*10, -1.65, 0.0+j*10)
+			glTexCoord2f(1.0, 1.0); glVertex3f(10.0+i*10, -1.65, 10.0+j*10)
+			glTexCoord2f(0.0, 1.0); glVertex3f(0.0+i*10, -1.65, 10.0+j*10)
+			glEnd()
+	glDisable(GL_TEXTURE_2D)
+
 def drawCar():
 	global data
 	z = 1.5 
@@ -353,10 +423,10 @@ def drawCar():
 	glEnable(GL_TEXTURE_2D)
 	glColor3f(206/255, 20/255, 55/255)
 	glBegin(GL_QUADS)
-	glTexCoord2f(0.0, 0.0); glVertex3f(-10.0, -1.6, -z -2.0)
-	glTexCoord2f(1.0, 0.0); glVertex3f(10.0, -1.6, -z -2.0)
-	glTexCoord2f(1.0, 1.0); glVertex3f(10.0, -1.6, z + 2.0) 
-	glTexCoord2f(0.0, 1.0); glVertex3f(-10.0, -1.6, z + 2.0)
+	glTexCoord2f(0.0, 0.0); glVertex3f(-20.0, -1.6, -z -3.0)
+	glTexCoord2f(1.0, 0.0); glVertex3f(20.0, -1.6, -z -3.0)
+	glTexCoord2f(1.0, 1.0); glVertex3f(20.0, -1.6, z + 3.0) 
+	glTexCoord2f(0.0, 1.0); glVertex3f(-20.0, -1.6, z + 3.0)
 	glEnd()
 	glDisable(GL_TEXTURE_2D)
 
@@ -623,60 +693,11 @@ def drawCar():
 	glTexCoord2f(0.0, 0.0); glVertex3f(2.95, -0.65, -z-0.0015)
 	glEnd()
 	glDisable(GL_TEXTURE_2D)
-	'''
-	#front window glass
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glEnable(GL_BLEND)
-	glColor4f(90/255, 90/255, 90/255, 0.3)
-	glBegin(GL_QUADS)
-	glVertex3f(0.65, 1.42, -z)
-	glVertex3f(0.65, 1.42, -z)
-	glVertex3f(1.15, 0.34, -z)
-	glVertex3f(1.15, 0.34, -z)
-	glEnd()
-	glDisable(GL_BLEND)
-		
-	#right window glass
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glEnable(GL_BLEND)
-	glColor4f(90/255, 90/255, 90/255, 0.3)
-	glBegin(GL_QUADS)
-	glVertex3f(-3.0, 1.5, z-0.01)
-	glVertex3f(0.5, 1.5, z-0.01)
-	glVertex3f(1.2, 0.25, z-0.01)
-	glVertex3f(-3.0, 0.25, z-0.01)
-	glEnd()
-	glDisable(GL_BLEND)
-
-	#front window glass
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glEnable(GL_BLEND)
-	glColor4f(90/255, 90/255, 90/255, 0.3)
-	glBegin(GL_QUADS)
-	glVertex3f(0.5, 1.5, -z)
-	glVertex3f(0.5, 1.5, z)
-	glVertex3f(1.2, 0.25, z)
-	glVertex3f(1.2, 0.25, -z)
-	glEnd()
-	glDisable(GL_BLEND)
-
-	#back window glass
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glEnable(GL_BLEND)
-	glColor4f(90/255, 90/255, 90/255, 0.3)
-	glBegin(GL_QUADS)
-	glVertex3f(-2.99, 0.25, -z+0.5)
-	glVertex3f(-2.99, 0.25, z-0.5)
-	glVertex3f(-2.99, 1.0, z-0.5)
-	glVertex3f(-2.99, 1.0, -z+0.5)
-	glEnd()
-	glDisable(GL_BLEND)
-	'''
+	
+	# Car's Wheel
 	loadTexture(data[1],dim1[2],dim1[3])
 	glEnable(GL_TEXTURE_2D)
-	# Car's Wheel
 	glColor3f(0.0, 0.0, 0.0)
-	# quadric = gluNewQuadric()
 	quadric = gluNewQuadric()
 	gluQuadricNormals(quadric, GLU_SMOOTH)
 	gluQuadricTexture(quadric, GL_TRUE)
@@ -718,22 +739,7 @@ def drawCar():
 	gluDisk(quadric, 0.2, 0.4, 15, 15)
 	glDisable(GL_TEXTURE_2D)
 
-	# loadTexture(data[6],dim1[10],dim1[11])
-	# glBegin(GL_QUADS)
-	# glTexCoord2d(0.0,0.0)
-	# glVertex2d(-1.0,-1.0)
-	# glTexCoord2d(1.0,0.0)
-	# glVertex2d(1.0,-1.0)
-	# glTexCoord2d(1.0,1.0)
-	# glVertex2d(1.0,1.0)
-	# glTexCoord2d(0.0,1.0)
-	# glEnd()
-
 def glCreateParticles():
-	# glTexCoord2f(0.0, 0.0); glVertex3f(1.2, 0.25, z)
-	# glTexCoord2f(1.0, 0.0); glVertex3f(1.2, -1.0, z)
-	# glTexCoord2f(1.0, 1.0); glVertex3f(-3.0, -1.0, z)
-	# glTexCoord2f(0.0, 1.0); glVertex3f(-3.0, 0.25, z)
 	if(Particle != None):
 		for i in range(0,ParticleCount-1):
 			Particle[i].Xpos = -4.5
@@ -760,7 +766,6 @@ def glUpdateParticles():
 		glColor3f (Particle[i].Red, Particle[i].Green, Particle[i].Blue)
 
 		Particle[i].Ypos = Particle[i].Ypos + Particle[i].Xmov
-		# Particle[i].Deceleration = Particle[i].Deceleration + 0.0025
 
 		Particle[i].Xpos = Particle[i].Xpos - Particle[i].Acceleration + Particle[i].Deceleration
 		Particle[i].Zpos = Particle[i].Zpos + Particle[i].Zmov
@@ -803,8 +808,6 @@ def InitGL(Width, Height):
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
  
 def DrawGLScene():
-	#global X_AXIS,Y_AXIS,Z_AXIS
-	#global DIRECTION
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
  
@@ -818,40 +821,14 @@ def DrawGLScene():
  
 	# glBindTexture(GL_TEXTURE_2D, ID)
 	# Draw Car
+	drawTerrain()
 	drawCar()
+	drawRain()
 
 	glUpdateParticles()
 	displaySmoke()
 	# Draw Cube (multiple quads)
-	'''glBegin(GL_QUADS);
-	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
-	glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
-	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0,  1.0,  1.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f( 1.0,  1.0,  1.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f(-1.0, -1.0, -1.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f( 1.0, -1.0, -1.0);
-	glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
-	glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
-	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
-	glEnd();
-	idle()
-	#X_AXIS = X_AXIS - 0.30
-	#Z_AXIS = Z_AXIS - 0.30'''
+	
 	idle()
 	glutSwapBuffers()
 
@@ -892,7 +869,9 @@ def loadTexture(data, ix, iy):
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
-# thread = Tk()  
+def idlePost():
+	glutPostRedisplay()
+	
 def main():
 	global data, dim1, dim2, thread
 	glutInit(sys.argv)
@@ -900,17 +879,12 @@ def main():
 	glutInitWindowSize(640,480)
 	glutInitWindowPosition(200,200)
 
-	window = glutCreateWindow(b'OpenGL Python Textured Cube')
+	window = glutCreateWindow(b'IF3260: Computer Graphics')
 
+	init()
 	glCreateParticles()
-
-	# temp_texture_mask = float(LoadTextureRAW("../img/particle.raw",256,256)) #load our texture
-	# texture.append(temp_texture_mask)
-	# temp_texture = float(LoadTextureRAW("../img/particle_mask.raw",256,256)) #load our texture
-	# texture.append(temp_texture)
-
 	glutDisplayFunc(DrawGLScene)
-	glutIdleFunc(DrawGLScene)
+	glutIdleFunc(idlePost)
 	glutKeyboardFunc(processNormalKeys)
 	glutSpecialFunc(processSpecialKeys)
 	
@@ -947,28 +921,13 @@ def main():
 	dim1.append(x)
 	dim1.append(y)
 	data.append(arr)
-
-	# arr, x, y = loadImage("../img/particle_mask.bmp")
-	# dim1.append(x)
-	# dim1.append(y)
-	# data.append(arr)
-
-	# arr, x, y = loadImage("../img/particle.bmp")
-	# dim1.append(x)
-	# dim1.append(y)
-	# data.append(arr)
-
-	# arr, x, y = loadImage("../img/tes.jpg")
-	# dim2.append(x)
-	# dim2.append(y)
-	# data.append(arr)
+	
+	arr, x, y = loadImage("../img/grass.jpg")
+	dim1.append(x)
+	dim1.append(y)
+	data.append(arr)
 	
 	glutMainLoop()
-	
-#if __name__ == "__main__":
-	#thread = _thread.start_new_thread(showSlider, ())	
-	#showSlider()
-	#thread2 = _thread.start_new_thread(main1,())	
 
 def FreeTexture(texture):
 	glDeleteTextures(1,texture)
@@ -986,42 +945,3 @@ def updateValue(event):
 	ambient = amb.get()/100.0
 
 main()
-# thread.title('Brightness')
-# #~ slider = Insert(END, "Set Brightness\n")
-# var1 = StringVar()
-# var2 = StringVar()
-# var3 = StringVar()
-# var4 = StringVar()
-# label = Label(thread, textvariable=var1, relief=RAISED)
-# var1.set("Shine")
-# label.pack()
-# shine_val = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-# shine_val.set(0)
-# shine_val.pack()
-
-# label = Label(thread, textvariable=var2, relief=RAISED)
-# var2.set("Diffuse")
-# label.pack()
-# diff = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-# diff.set(0)
-# diff.pack()
-
-# label = Label(thread, textvariable=var3, relief=RAISED)
-# var3.set("Specular")
-# label.pack()
-# spc = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-# spc.set(0)
-# spc.pack()
-
-# label = Label(thread, textvariable=var4, relief=RAISED)
-# var4.set("Ambient")
-# label.pack()
-# amb = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-# amb.set(0)
-# amb.pack()
-
-
-#print(slider.get())
-# _thread.start_new_thread(main, ())
-# thread.mainloop()
-	
