@@ -3,8 +3,10 @@
 
 # --Libraries and Packages--
 import sys
+import random
 import numpy
 import _thread
+import tkinter
 from math import *
 from OpenGL.GLU import *
 from OpenGL.GL import *
@@ -68,8 +70,26 @@ class Camera:
 		glRotated(self.rotation[0], -1, 0, 0)
 		glRotated(self.rotation[1], 0, -1, 0)
 		glRotated(self.rotation[2], 0, 0, -1)
+
+class PARTICLES:
+	Xpos = 0.0
+	Ypos = 0.0
+	Zpos = 0.0
+	Xmov = 0.0
+	Red = 0.0
+	Green = 0.0
+	Blue = 0.0
+	Direction = 0.0
+	Acceleration = 0.0
+	Deceleration = 0.0
+	Scalez = 0.0
+	Visible = False
 		
 camera = Camera()
+texture = []
+ParticleCount = 70
+Particle = [PARTICLES() for i in range(0,ParticleCount-1)]
+n = 0
 
 # Key Processing Unit
 def processNormalKeys(key, x, y):
@@ -129,23 +149,23 @@ def idle():
 			yrot = 0			
 
 # Slider Thread
-def showSlider():
-	global spec
-	global ambient
-	global diffuse
-	global shine
+# def showSlider():
+# 	global spec
+# 	global ambient
+# 	global diffuse
+# 	global shine
 
-	thread = Tk()
-	thread.title('Brightness')
-	#~ slider = Insert(END, "Set Brightness\n")
-	slider = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL)
-	slider.pack()
-	shine = slider.get()
-	print(slider.get())
-	#main()
-	thread.mainloop()
-	#thread.update_idletasks()
-	#thread.update()
+# 	thread = Tk()
+# 	thread.title('Brightness')
+# 	#~ slider = Insert(END, "Set Brightness\n")
+# 	slider = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL)
+# 	slider.pack()
+# 	shine = slider.get()
+# 	print(slider.get())
+# 	#main()
+# 	thread.mainloop()
+# 	#thread.update_idletasks()
+# 	#thread.update()
 
 # Lighting
 def renderLight():
@@ -553,6 +573,101 @@ def drawCar():
 	gluDisk(quadric, 0.2, 0.4, 15, 15)
 	glDisable(GL_TEXTURE_2D)
 
+	# loadTexture(data[6],dim1[10],dim1[11])
+	# glBegin(GL_QUADS)
+	# glTexCoord2d(0.0,0.0)
+	# glVertex2d(-1.0,-1.0)
+	# glTexCoord2d(1.0,0.0)
+	# glVertex2d(1.0,-1.0)
+	# glTexCoord2d(1.0,1.0)
+	# glVertex2d(1.0,1.0)
+	# glTexCoord2d(0.0,1.0)
+	# glEnd()
+
+	for i in range(0,ParticleCount-1):
+		glTranslatef (Particle[i].Xpos, Particle[i].Ypos, Particle[i].Zpos)
+		glRotatef (Particle[i].Direction - 10, 0, 0, 1)
+		glScalef (Particle[i].Scalez, Particle[i].Scalez, Particle[i].Scalez)
+		#glBlendFunc (GL_DST_COLOR, GL_ZERO)
+		
+		loadTexture(data[6],dim1[10],dim1[11])
+		glEnable(GL_TEXTURE_2D)
+		glBegin (GL_QUADS)
+		glTexCoord2d (0, 0)
+		glVertex3f (-1, -1, z)
+		glTexCoord2d (1, 0)
+		glVertex3f (1, -1, z)
+		glTexCoord2d (1, 1)
+		glVertex3f (1, 1, z)
+		glTexCoord2d (0, 1)
+		glVertex3f (-1, 1, z)
+		glEnd()
+		glDisable(GL_TEXTURE_2D)
+
+		loadTexture(data[7],dim1[12],dim1[13])
+		glEnable(GL_TEXTURE_2D)
+		glBegin (GL_QUADS)
+		glTexCoord2d (0, 0)
+		glVertex3f (-1, -1, z)
+		glTexCoord2d (1, 0)
+		glVertex3f (1, -1, z)
+		glTexCoord2d (1, 1)
+		glVertex3f (1, 1, z)
+		glTexCoord2d (0, 1)
+		glVertex3f (-1, 1, z)
+		glEnd()
+		glDisable(GL_TEXTURE_2D)
+
+def glCreateParticles():
+	if(Particle != None):
+		for i in range(0,ParticleCount-1):
+			Particle[i].Xpos = 0
+			Particle[i].Ypos = -5
+			Particle[i].Zpos = -5
+			Particle[i].Xmov = (((((( (2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) *random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
+			Particle[i].Zmov = (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
+			Particle[i].Red = 1
+			Particle[i].Green = 1
+			Particle[i].Blue = 1
+			Particle[i].Scalez = 0.25
+			Particle[i].Direction = 0
+			Particle[i].Acceleration = 0.05
+			#Particle[i].Acceleration = ((((((8 - 5 + 2) * random.random()%11) + 5) - 1 + 1) * random.random()%11) + 1) * 0.01
+			Particle[i].Deceleration = 0.0025
+
+def glUpdateParticles():
+	global n
+
+	if(n > ParticleCount-1):
+		n = ParticleCount-1
+
+	for i in range(0,n):
+		glColor3f (Particle[i].Red, Particle[i].Green, Particle[i].Blue)
+
+		Particle[i].Ypos = Particle[i].Ypos + Particle[i].Xmov
+		# Particle[i].Deceleration = Particle[i].Deceleration + 0.0025
+
+		Particle[i].Xpos = Particle[i].Xpos + Particle[i].Acceleration - Particle[i].Deceleration
+		Particle[i].Zpos = Particle[i].Zpos + Particle[i].Zmov
+
+		Particle[i].Direction = Particle[i].Direction + ((((((0.5 - 0.1 + 0.1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1)
+
+		Particle[i].Scalez+=0.001
+		if (Particle[i].Xpos < -5 or Particle[i].Xpos > 10):
+			Particle[i].Xpos = 0
+			Particle[i].Ypos = -5
+			Particle[i].Zpos = -5
+			Particle[i].Red = 1
+			Particle[i].Green = 1
+			Particle[i].Blue = 1
+			Particle[i].Direction = 0
+			Particle[i].Scalez = 0.25
+			Particle[i].Acceleration = 0.05
+			#Particle[i].Acceleration = ((((((8 - 5 + 2) * random.random()%11) + 5) - 1 + 1) * random.random()%11) + 1) * 0.01
+			Particle[i].Deceleration = 0.0025
+
+	n+=1
+		
 # Initialization
 def InitGL(Width, Height): 
  
@@ -621,8 +736,25 @@ def DrawGLScene():
 	#Z_AXIS = Z_AXIS - 0.30'''
 	idle()
 	glutSwapBuffers()
- 
- 
+
+
+def display():
+	glClearDepth (1)
+	glClearColor (0.0,0.0,0.0,1.0)
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+	glLoadIdentity()
+	glTranslatef (0,0,-10)
+	glUpdateParticles()
+	glutSwapBuffers()
+
+def reshape(w,h):
+	glViewport (0, 0,w ,h )
+	glMatrixMode (GL_PROJECTION)
+	glLoadIdentity ()
+	gluPerspective (60, w / h, 1.0, 100.0)
+	glMatrixMode (GL_MODELVIEW)
+	# glLoadIdentity ()
+
 def loadImage(filename):
 	image = Image.open(filename)
 	ix = image.size[0]
@@ -690,6 +822,17 @@ def main():
 	dim1.append(x)
 	dim1.append(y)
 	data.append(arr)
+
+	arr, x, y = loadImage("../img/particle_mask.bmp")
+	dim1.append(x)
+	dim1.append(y)
+	data.append(arr)
+
+	arr, x, y = loadImage("../img/particle.bmp")
+	dim1.append(x)
+	dim1.append(y)
+	data.append(arr)
+
 	# arr, x, y = loadImage("../img/tes.jpg")
 	# dim2.append(x)
 	# dim2.append(y)
@@ -701,6 +844,28 @@ def main():
 	#thread = _thread.start_new_thread(showSlider, ())	
 	#showSlider()
 	#thread2 = _thread.start_new_thread(main1,())	
+
+def loadImage(filename):
+	image = Image.open(filename)
+	ix = image.size[0]
+	iy = image.size[1]
+	data = numpy.array(list(image.getdata()),  dtype=numpy.int64)
+
+	return data, ix, iy
+
+def loadTexture(data, ix, iy):
+	glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ix, iy, 0, GL_RGB, GL_UNSIGNED_BYTE, data)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+
+def FreeTexture(texture):
+	glDeleteTextures(1,texture)
 
 def updateValue(event):
 	global spec
@@ -714,39 +879,39 @@ def updateValue(event):
 
 	ambient = amb.get()/100.0
 
-thread.title('Brightness')
-#~ slider = Insert(END, "Set Brightness\n")
-var1 = StringVar()
-var2 = StringVar()
-var3 = StringVar()
-var4 = StringVar()
-label = Label(thread, textvariable=var1, relief=RAISED)
-var1.set("Shine")
-label.pack()
-shine_val = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-shine_val.set(0)
-shine_val.pack()
+# thread.title('Brightness')
+# #~ slider = Insert(END, "Set Brightness\n")
+# var1 = StringVar()
+# var2 = StringVar()
+# var3 = StringVar()
+# var4 = StringVar()
+# label = Label(thread, textvariable=var1, relief=RAISED)
+# var1.set("Shine")
+# label.pack()
+# shine_val = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+# shine_val.set(0)
+# shine_val.pack()
 
-label = Label(thread, textvariable=var2, relief=RAISED)
-var2.set("Diffuse")
-label.pack()
-diff = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-diff.set(0)
-diff.pack()
+# label = Label(thread, textvariable=var2, relief=RAISED)
+# var2.set("Diffuse")
+# label.pack()
+# diff = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+# diff.set(0)
+# diff.pack()
 
-label = Label(thread, textvariable=var3, relief=RAISED)
-var3.set("Specular")
-label.pack()
-spc = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-spc.set(0)
-spc.pack()
+# label = Label(thread, textvariable=var3, relief=RAISED)
+# var3.set("Specular")
+# label.pack()
+# spc = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+# spc.set(0)
+# spc.pack()
 
-label = Label(thread, textvariable=var4, relief=RAISED)
-var4.set("Ambient")
-label.pack()
-amb = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
-amb.set(0)
-amb.pack()
+# label = Label(thread, textvariable=var4, relief=RAISED)
+# var4.set("Ambient")
+# label.pack()
+# amb = Scale(thread, from_= 0, to = 100, orient = HORIZONTAL, command=updateValue)
+# amb.set(0)
+# amb.pack()
 
 
 #print(slider.get())
