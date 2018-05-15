@@ -87,7 +87,7 @@ class PARTICLES:
 		
 camera = Camera()
 texture = []
-ParticleCount = 70
+ParticleCount = 100
 Particle = [PARTICLES() for i in range(0,ParticleCount-1)]
 n = 0
 
@@ -198,6 +198,151 @@ def renderLight():
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse, diffuse, diffuse, 1.0])
 	#glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection)	
 	#glMateriali(GL_FRONT, GL_SHININESS, shine)
+
+def displaySmoke():
+	for i in range(0,ParticleCount-1):
+		glEnable(GL_DEPTH_TEST)
+		glPushMatrix()
+
+		glTranslatef (Particle[i].Xpos, Particle[i].Ypos, Particle[i].Zpos)
+		glRotatef (Particle[i].Direction - 10, 0, 0, 1)
+
+		glScalef (Particle[i].Scalez, Particle[i].Scalez, Particle[i].Scalez)
+
+		glEnable (GL_BLEND)
+		glBlendFunc (GL_DST_COLOR, GL_ZERO)
+
+		# glBindTexture (GL_TEXTURE_2D, int(texture[0]))
+
+		s = 0.3
+		glBegin (GL_QUADS)
+		glColor3f(50,50,50)
+		glVertex3f (-s, -s, s)
+		glVertex3f (s, -s, s)
+		glVertex3f (s, s, s)
+		glVertex3f (-s, s, s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, -s, -s)
+		glVertex3f (s, -s, -s)
+		glVertex3f (s, s, -s)
+		glVertex3f (-s, s, -s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, s, s)
+		glVertex3f (-s, s, -s)
+		glVertex3f (s, s, -s)
+		glVertex3f (s, s, s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, -s, s)
+		glVertex3f (-s, -s, -s)
+		glVertex3f (s, -s, -s)
+		glVertex3f (s, -s, s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (s, -s, s)
+		glVertex3f (s, s, s)
+		glVertex3f (s, s, -s)
+		glVertex3f (s, -s, -s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, -s, s)
+		glVertex3f (-s, s, s)
+		glVertex3f (-s, s, -s)
+		glVertex3f (-s, -s, -s)
+		glEnd()
+
+		glBlendColor(30/256,30/256,30/256,256/256)
+		glBlendFunc (GL_CONSTANT_COLOR, GL_CONSTANT_COLOR)
+		#glBindTexture (GL_TEXTURE_2D, int(texture[1]))
+
+		glBegin (GL_QUADS)
+		# glTexCoord2d (0, 0)
+		glVertex3f (-s, -s, s)
+		# glTexCoord2d (1, 0)
+		glVertex3f (s, -s, s)
+		# glTexCoord2d (1, 1)
+		glVertex3f (s, s, s)
+		# glTexCoord2d (0, 1)
+		glVertex3f (-s, s, s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, -s, -s)
+		glVertex3f (s, -s, -s)
+		glVertex3f (s, s, -s)
+		glVertex3f (-s, s, -s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, s, s)
+		glVertex3f (-s, s, -s)
+		glVertex3f (s, s, -s)
+		glVertex3f (s, s, s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, -s, s)
+		glVertex3f (-s, -s, -s)
+		glVertex3f (s, -s, -s)
+		glVertex3f (s, -s, s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (s, -s, s)
+		glVertex3f (s, s, s)
+		glVertex3f (s, s, -s)
+		glVertex3f (s, -s, -s)
+		glEnd()
+
+		glBegin (GL_QUADS)
+		glVertex3f (-s, -s, s)
+		glVertex3f (-s, s, s)
+		glVertex3f (-s, s, -s)
+		glVertex3f (-s, -s, -s)
+		glEnd()
+		
+		glDisable(GL_BLEND)
+		
+		glPopMatrix()
+
+def LoadTextureRAW(filename,width,height):
+	# GLuint texture;
+	# unsigned char * data;
+	# FILE * file;
+	file = open( filename, "rb" )
+	if ( file == None ): 
+		return 0
+
+	data = file.read()
+	# data = (unsigned char *)malloc( width * height * 3 );
+
+	# fread( data, width * height * 3, 1, file );
+	file.close()
+
+	texture = 0
+	glGenTextures(1, texture)
+
+	glBindTexture(GL_TEXTURE_2D, texture)
+
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+
+	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE )
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST )
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR )
+
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data)
+
+	return texture
 
 def drawCar():
 	global data
@@ -584,46 +729,16 @@ def drawCar():
 	# glTexCoord2d(0.0,1.0)
 	# glEnd()
 
-	for i in range(0,ParticleCount-1):
-		glTranslatef (Particle[i].Xpos, Particle[i].Ypos, Particle[i].Zpos)
-		glRotatef (Particle[i].Direction - 10, 0, 0, 1)
-		glScalef (Particle[i].Scalez, Particle[i].Scalez, Particle[i].Scalez)
-		#glBlendFunc (GL_DST_COLOR, GL_ZERO)
-		
-		loadTexture(data[6],dim1[10],dim1[11])
-		glEnable(GL_TEXTURE_2D)
-		glBegin (GL_QUADS)
-		glTexCoord2d (0, 0)
-		glVertex3f (-1, -1, z)
-		glTexCoord2d (1, 0)
-		glVertex3f (1, -1, z)
-		glTexCoord2d (1, 1)
-		glVertex3f (1, 1, z)
-		glTexCoord2d (0, 1)
-		glVertex3f (-1, 1, z)
-		glEnd()
-		glDisable(GL_TEXTURE_2D)
-
-		loadTexture(data[7],dim1[12],dim1[13])
-		glEnable(GL_TEXTURE_2D)
-		glBegin (GL_QUADS)
-		glTexCoord2d (0, 0)
-		glVertex3f (-1, -1, z)
-		glTexCoord2d (1, 0)
-		glVertex3f (1, -1, z)
-		glTexCoord2d (1, 1)
-		glVertex3f (1, 1, z)
-		glTexCoord2d (0, 1)
-		glVertex3f (-1, 1, z)
-		glEnd()
-		glDisable(GL_TEXTURE_2D)
-
 def glCreateParticles():
+	# glTexCoord2f(0.0, 0.0); glVertex3f(1.2, 0.25, z)
+	# glTexCoord2f(1.0, 0.0); glVertex3f(1.2, -1.0, z)
+	# glTexCoord2f(1.0, 1.0); glVertex3f(-3.0, -1.0, z)
+	# glTexCoord2f(0.0, 1.0); glVertex3f(-3.0, 0.25, z)
 	if(Particle != None):
 		for i in range(0,ParticleCount-1):
-			Particle[i].Xpos = 0
-			Particle[i].Ypos = -5
-			Particle[i].Zpos = -5
+			Particle[i].Xpos = -4.5
+			Particle[i].Ypos = 0
+			Particle[i].Zpos = 3
 			Particle[i].Xmov = (((((( (2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) *random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
 			Particle[i].Zmov = (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
 			Particle[i].Red = 1
@@ -647,16 +762,16 @@ def glUpdateParticles():
 		Particle[i].Ypos = Particle[i].Ypos + Particle[i].Xmov
 		# Particle[i].Deceleration = Particle[i].Deceleration + 0.0025
 
-		Particle[i].Xpos = Particle[i].Xpos + Particle[i].Acceleration - Particle[i].Deceleration
+		Particle[i].Xpos = Particle[i].Xpos - Particle[i].Acceleration + Particle[i].Deceleration
 		Particle[i].Zpos = Particle[i].Zpos + Particle[i].Zmov
 
 		Particle[i].Direction = Particle[i].Direction + ((((((0.5 - 0.1 + 0.1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1)
 
-		Particle[i].Scalez+=0.001
-		if (Particle[i].Xpos < -5 or Particle[i].Xpos > 10):
-			Particle[i].Xpos = 0
-			Particle[i].Ypos = -5
-			Particle[i].Zpos = -5
+		Particle[i].Scalez+=0.005
+		if (Particle[i].Xpos < -8 or Particle[i].Xpos > 10):
+			Particle[i].Xpos = -4.5
+			Particle[i].Ypos = 0
+			Particle[i].Zpos = 3
 			Particle[i].Red = 1
 			Particle[i].Green = 1
 			Particle[i].Blue = 1
@@ -666,7 +781,7 @@ def glUpdateParticles():
 			#Particle[i].Acceleration = ((((((8 - 5 + 2) * random.random()%11) + 5) - 1 + 1) * random.random()%11) + 1) * 0.01
 			Particle[i].Deceleration = 0.0025
 
-	n+=1
+	n+=2
 		
 # Initialization
 def InitGL(Width, Height): 
@@ -704,6 +819,9 @@ def DrawGLScene():
 	# glBindTexture(GL_TEXTURE_2D, ID)
 	# Draw Car
 	drawCar()
+
+	glUpdateParticles()
+	displaySmoke()
 	# Draw Cube (multiple quads)
 	'''glBegin(GL_QUADS);
 	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
@@ -774,7 +892,7 @@ def loadTexture(data, ix, iy):
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
-thread = Tk()      
+# thread = Tk()  
 def main():
 	global data, dim1, dim2, thread
 	glutInit(sys.argv)
@@ -783,7 +901,14 @@ def main():
 	glutInitWindowPosition(200,200)
 
 	window = glutCreateWindow(b'OpenGL Python Textured Cube')
- 
+
+	glCreateParticles()
+
+	# temp_texture_mask = float(LoadTextureRAW("../img/particle.raw",256,256)) #load our texture
+	# texture.append(temp_texture_mask)
+	# temp_texture = float(LoadTextureRAW("../img/particle_mask.raw",256,256)) #load our texture
+	# texture.append(temp_texture)
+
 	glutDisplayFunc(DrawGLScene)
 	glutIdleFunc(DrawGLScene)
 	glutKeyboardFunc(processNormalKeys)
@@ -823,15 +948,15 @@ def main():
 	dim1.append(y)
 	data.append(arr)
 
-	arr, x, y = loadImage("../img/particle_mask.bmp")
-	dim1.append(x)
-	dim1.append(y)
-	data.append(arr)
+	# arr, x, y = loadImage("../img/particle_mask.bmp")
+	# dim1.append(x)
+	# dim1.append(y)
+	# data.append(arr)
 
-	arr, x, y = loadImage("../img/particle.bmp")
-	dim1.append(x)
-	dim1.append(y)
-	data.append(arr)
+	# arr, x, y = loadImage("../img/particle.bmp")
+	# dim1.append(x)
+	# dim1.append(y)
+	# data.append(arr)
 
 	# arr, x, y = loadImage("../img/tes.jpg")
 	# dim2.append(x)
@@ -844,25 +969,6 @@ def main():
 	#thread = _thread.start_new_thread(showSlider, ())	
 	#showSlider()
 	#thread2 = _thread.start_new_thread(main1,())	
-
-def loadImage(filename):
-	image = Image.open(filename)
-	ix = image.size[0]
-	iy = image.size[1]
-	data = numpy.array(list(image.getdata()),  dtype=numpy.int64)
-
-	return data, ix, iy
-
-def loadTexture(data, ix, iy):
-	glPixelStorei(GL_UNPACK_ALIGNMENT,1)
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ix, iy, 0, GL_RGB, GL_UNSIGNED_BYTE, data)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
 def FreeTexture(texture):
 	glDeleteTextures(1,texture)
@@ -879,6 +985,7 @@ def updateValue(event):
 
 	ambient = amb.get()/100.0
 
+main()
 # thread.title('Brightness')
 # #~ slider = Insert(END, "Set Brightness\n")
 # var1 = StringVar()
@@ -915,6 +1022,6 @@ def updateValue(event):
 
 
 #print(slider.get())
-_thread.start_new_thread(main, ())
-thread.mainloop()
+# _thread.start_new_thread(main, ())
+# thread.mainloop()
 	
