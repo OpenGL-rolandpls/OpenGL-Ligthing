@@ -55,13 +55,9 @@ dim2 = []
 
 # Lighting
 spec = 1.0
-
 ambient = 1.0
-
 diffuse = 1.0
-
 shine = 10.0
-
 
 # --CLASSES--
 class Particles:
@@ -82,6 +78,20 @@ class Particles:
 	# Gravity
 	gravity = 0.0
 
+#for smoke
+class Particles2:
+	Xpos = 0.0
+	Ypos = 0.0
+	Zpos = 0.0
+	Xmov = 0.0
+	Red = 0.0
+	Green = 0.0
+	Blue = 0.0
+	Direction = 0.0
+	Acceleration = 0.0
+	Scalez = 0.0
+	Visible = False
+
 class Camera:
 	def __init__(self):
 		self.position = (0.0, 0.0, 0.0)
@@ -101,26 +111,11 @@ class Camera:
 		glRotated(self.rotation[1], 0, -1, 0)
 		glRotated(self.rotation[2], 0, 0, -1)
 
-class PARTICLES:
-	Xpos = 0.0
-	Ypos = 0.0
-	Zpos = 0.0
-	Xmov = 0.0
-	Red = 0.0
-	Green = 0.0
-	Blue = 0.0
-	Direction = 0.0
-	Acceleration = 0.0
-	Deceleration = 0.0
-	Scalez = 0.0
-	Visible = False
-
 # Invoke Class
 camera = Camera()
 particle = [Particles() for i in range(0,MAX_PARTICLES)]
-texture = []
-ParticleCount = 120
-Particle = [PARTICLES() for i in range(0,ParticleCount-1)]
+smokeParticleCount = 120
+smokeParticle = [Particles2() for i in range(0,smokeParticleCount-1)]
 n = 0
 
 # Key Processing Unit
@@ -203,7 +198,7 @@ def init():
 	glClearDepth(1.0)
 	glEnable(GL_DEPTH_TEST)
 
-	glCreateParticles()
+	glCreateSmokeParticles()
 
 	# Initialize particles
 	for loop in range(0, MAX_PARTICLES):
@@ -268,14 +263,13 @@ def renderLight():
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse, diffuse, diffuse, 1.0])
 
 def displaySmoke():
-	for i in range(0,ParticleCount-1):
+	for i in range(0,smokeParticleCount-1):
 		glEnable(GL_DEPTH_TEST)
 		glPushMatrix()
 
-		glTranslatef (Particle[i].Xpos, Particle[i].Ypos, Particle[i].Zpos)
-		glRotatef (Particle[i].Direction - 30, 0, 0, 1)
-
-		glScalef (Particle[i].Scalez, Particle[i].Scalez, Particle[i].Scalez)
+		glTranslatef (smokeParticle[i].Xpos, smokeParticle[i].Ypos, smokeParticle[i].Zpos)
+		glRotatef (smokeParticle[i].Direction - 30, 0, 0, 1)
+		glScalef (smokeParticle[i].Scalez, smokeParticle[i].Scalez, smokeParticle[i].Scalez)
 
 		glEnable (GL_BLEND)
 		glBlendFunc (GL_DST_COLOR, GL_ZERO)
@@ -735,52 +729,48 @@ def drawCar():
 	glTranslatef(4.95,-0,-3.01)
 	glDisable(GL_TEXTURE_2D)
 
-def glCreateParticles():
-	if(Particle != None):
-		for i in range(0,ParticleCount-1):
-			Particle[i].Xpos = -4.95
-			Particle[i].Ypos = 0
-			Particle[i].Zpos = 3
-			# Particle[i].Xmov = ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005 - ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005
-			# Particle[i].Zmov = ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005 - ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005
-			Particle[i].Xmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
-			Particle[i].Zmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
-			Particle[i].Red = 1
-			Particle[i].Green = 1
-			Particle[i].Blue = 1
-			Particle[i].Scalez = 0.25
-			Particle[i].Direction = 0
-			Particle[i].Acceleration = 0.05
-			Particle[i].Deceleration = 0.0025
+def glCreateSmokeParticles():
+	if(smokeParticle != None):
+		for i in range(0,smokeParticleCount-1):
+			smokeParticle[i].Xpos = -4.95
+			smokeParticle[i].Ypos = 0
+			smokeParticle[i].Zpos = 3
+			smokeParticle[i].Xmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
+			smokeParticle[i].Zmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
+			smokeParticle[i].Red = 1
+			smokeParticle[i].Green = 1
+			smokeParticle[i].Blue = 1
+			smokeParticle[i].Scalez = 0.25
+			smokeParticle[i].Direction = 0
+			smokeParticle[i].Acceleration = 0.05
 
-def glUpdateParticles():
+def glUpdateSmokeParticles():
 	global n
 
-	if(n > ParticleCount-1):
-		n = ParticleCount-1
+	if(n > smokeParticleCount-1):
+		n = smokeParticleCount-1
 
 	for i in range(0,n):
-		glColor3f (Particle[i].Red, Particle[i].Green, Particle[i].Blue)
+		glColor3f (smokeParticle[i].Red, smokeParticle[i].Green, smokeParticle[i].Blue)
 
-		Particle[i].Ypos = Particle[i].Ypos + Particle[i].Xmov
+		smokeParticle[i].Ypos = smokeParticle[i].Ypos + smokeParticle[i].Xmov
+		smokeParticle[i].Xpos = smokeParticle[i].Xpos - smokeParticle[i].Acceleration
+		smokeParticle[i].Zpos = smokeParticle[i].Zpos + smokeParticle[i].Zmov
 
-		Particle[i].Xpos = Particle[i].Xpos - Particle[i].Acceleration + Particle[i].Deceleration
-		Particle[i].Zpos = Particle[i].Zpos + Particle[i].Zmov
+		smokeParticle[i].Direction = smokeParticle[i].Direction + 0.5 * random.random()%11 + 1
 
-		Particle[i].Direction = Particle[i].Direction + 0.5 * random.random()%11 + 1
+		smokeParticle[i].Scalez+=0.005
+		if (smokeParticle[i].Xpos < -8 or smokeParticle[i].Xpos > 10):
+			smokeParticle[i].Xpos = -4.95
+			smokeParticle[i].Ypos = 0
+			smokeParticle[i].Zpos = 3
+			smokeParticle[i].Red = 1
+			smokeParticle[i].Green = 1
+			smokeParticle[i].Blue = 1
+			smokeParticle[i].Direction = 0
+			smokeParticle[i].Scalez = 0.25
+			smokeParticle[i].Acceleration = 0.05 - 0.0025
 
-		Particle[i].Scalez+=0.005
-		if (Particle[i].Xpos < -8 or Particle[i].Xpos > 10):
-			Particle[i].Xpos = -4.95
-			Particle[i].Ypos = 0
-			Particle[i].Zpos = 3
-			Particle[i].Red = 1
-			Particle[i].Green = 1
-			Particle[i].Blue = 1
-			Particle[i].Direction = 0
-			Particle[i].Scalez = 0.25
-			Particle[i].Acceleration = 0.05
-			Particle[i].Deceleration = 0.0025
 	n+=3
 		
 # Initialization
@@ -803,26 +793,21 @@ def InitGL(Width, Height):
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
  
 def DrawGLScene():
-	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
- 
 	glLoadIdentity()
-
 	renderLight()
 	
 	camera.apply()
 	camera.rotate(xrot*0.001, 0.0, 0.0)
 	camera.rotate(0, yrot*0.001, 0.0)
  
-	# glBindTexture(GL_TEXTURE_2D, ID)
-	# Draw Car
+	# Draw Objects
 	drawTerrain()
 	drawCar()
 	drawRain()
 
-	glUpdateParticles()
+	glUpdateSmokeParticles()
 	displaySmoke()
-	# Draw Cube (multiple quads)
 	
 	idle()
 	glutSwapBuffers()
@@ -833,7 +818,7 @@ def display():
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 	glLoadIdentity()
 	glTranslatef (0,0,-10)
-	glUpdateParticles()
+	glUpdateSmokeParticles()
 	glutSwapBuffers()
 
 def reshape(w,h):
@@ -842,7 +827,6 @@ def reshape(w,h):
 	glLoadIdentity ()
 	gluPerspective (60, w / h, 1.0, 100.0)
 	glMatrixMode (GL_MODELVIEW)
-	# glLoadIdentity ()
 
 def loadImage(filename):
 	image = Image.open(filename)
@@ -933,11 +917,10 @@ def updateValue(event):
 	global ambient
 	global diffuse
 	global shine
+
 	shine = 100 - shine_val.get()
 	diffuse = diff.get()/100.0
-
 	spec = spc.get()/100.0
-
 	ambient = amb.get()/100.0
 
 main()
