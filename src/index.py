@@ -119,7 +119,7 @@ class PARTICLES:
 camera = Camera()
 particle = [Particles() for i in range(0,MAX_PARTICLES)]
 texture = []
-ParticleCount = 100
+ParticleCount = 120
 Particle = [PARTICLES() for i in range(0,ParticleCount-1)]
 n = 0
 
@@ -203,6 +203,8 @@ def init():
 	glClearDepth(1.0)
 	glEnable(GL_DEPTH_TEST)
 
+	glCreateParticles()
+
 	# Initialize particles
 	for loop in range(0, MAX_PARTICLES):
 		initParticles(loop)
@@ -271,7 +273,7 @@ def displaySmoke():
 		glPushMatrix()
 
 		glTranslatef (Particle[i].Xpos, Particle[i].Ypos, Particle[i].Zpos)
-		glRotatef (Particle[i].Direction - 10, 0, 0, 1)
+		glRotatef (Particle[i].Direction - 30, 0, 0, 1)
 
 		glScalef (Particle[i].Scalez, Particle[i].Scalez, Particle[i].Scalez)
 
@@ -370,32 +372,6 @@ def displaySmoke():
 		glDisable(GL_BLEND)
 		
 		glPopMatrix()
-
-def LoadTextureRAW(filename,width,height):
-	file = open( filename, "rb" )
-	if ( file == None ): 
-		return 0
-
-	data = file.read()
-	file.close()
-
-	texture = 0
-	glGenTextures(1, texture)
-
-	glBindTexture(GL_TEXTURE_2D, texture)
-
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-
-	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE )
-
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST )
-
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR )
-
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data)
-
-	return texture
 
 # Terrain
 def drawTerrain():
@@ -765,15 +741,16 @@ def glCreateParticles():
 			Particle[i].Xpos = -4.95
 			Particle[i].Ypos = 0
 			Particle[i].Zpos = 3
-			Particle[i].Xmov = (((((( (2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) *random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
-			Particle[i].Zmov = (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005) - (((((((2 - 1 + 1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1) * 0.005)
+			# Particle[i].Xmov = ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005 - ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005
+			# Particle[i].Zmov = ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005 - ((2 * random.random()%11 + 1) * random.random()%11 + 1) * 0.005
+			Particle[i].Xmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
+			Particle[i].Zmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
 			Particle[i].Red = 1
 			Particle[i].Green = 1
 			Particle[i].Blue = 1
 			Particle[i].Scalez = 0.25
 			Particle[i].Direction = 0
 			Particle[i].Acceleration = 0.05
-			#Particle[i].Acceleration = ((((((8 - 5 + 2) * random.random()%11) + 5) - 1 + 1) * random.random()%11) + 1) * 0.01
 			Particle[i].Deceleration = 0.0025
 
 def glUpdateParticles():
@@ -790,7 +767,7 @@ def glUpdateParticles():
 		Particle[i].Xpos = Particle[i].Xpos - Particle[i].Acceleration + Particle[i].Deceleration
 		Particle[i].Zpos = Particle[i].Zpos + Particle[i].Zmov
 
-		Particle[i].Direction = Particle[i].Direction + ((((((0.5 - 0.1 + 0.1) * random.random()%11) + 1) - 1 + 1) * random.random()%11) + 1)
+		Particle[i].Direction = Particle[i].Direction + 0.5 * random.random()%11 + 1
 
 		Particle[i].Scalez+=0.005
 		if (Particle[i].Xpos < -8 or Particle[i].Xpos > 10):
@@ -803,10 +780,8 @@ def glUpdateParticles():
 			Particle[i].Direction = 0
 			Particle[i].Scalez = 0.25
 			Particle[i].Acceleration = 0.05
-			#Particle[i].Acceleration = ((((((8 - 5 + 2) * random.random()%11) + 5) - 1 + 1) * random.random()%11) + 1) * 0.01
 			Particle[i].Deceleration = 0.0025
-
-	n+=2
+	n+=3
 		
 # Initialization
 def InitGL(Width, Height): 
@@ -851,7 +826,6 @@ def DrawGLScene():
 	
 	idle()
 	glutSwapBuffers()
-
 
 def display():
 	glClearDepth (1)
@@ -902,7 +876,7 @@ def main():
 	window = glutCreateWindow(b'IF3260: Computer Graphics')
 
 	init()
-	glCreateParticles()
+	
 	glutDisplayFunc(DrawGLScene)
 	glutIdleFunc(idlePost)
 	glutKeyboardFunc(processNormalKeys)
@@ -953,9 +927,6 @@ def main():
 	data.append(arr)
 	
 	glutMainLoop()
-
-def FreeTexture(texture):
-	glDeleteTextures(1,texture)
 
 def updateValue(event):
 	global spec
