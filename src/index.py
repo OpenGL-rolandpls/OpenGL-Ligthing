@@ -263,7 +263,11 @@ def renderLight():
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, [diffuse, diffuse, diffuse, 1.0])
 
 def displaySmoke():
-	for i in range(0,smokeParticleCount-1):
+	global n
+
+	if(n > smokeParticleCount-1):
+		n = smokeParticleCount-1
+	for i in range(0,n):
 		glEnable(GL_DEPTH_TEST)
 		glPushMatrix()
 
@@ -318,7 +322,7 @@ def displaySmoke():
 		glVertex3f (-s, -s, -s)
 		glEnd()
 
-		glBlendColor(30/256,30/256,30/256,256/256)
+		glBlendColor(30/256,30/256,30/256,200/256)
 		glBlendFunc (GL_CONSTANT_COLOR, GL_CONSTANT_COLOR)
 
 		glBegin (GL_QUADS)
