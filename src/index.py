@@ -2,6 +2,7 @@
 # Texture Mapping - Immediate
 
 # --Libraries and Packages--
+import time
 import sys
 import random
 import numpy
@@ -24,6 +25,11 @@ zoom = -40.0
 pan = 0.0
 tilt = 0.0
 accum = -10.0
+
+# FPS
+frame_counter = 0
+start_time = time.time()
+end_time = time.time()
 
 # --Camera Settings--
 # Camera Angle
@@ -793,6 +799,7 @@ def InitGL(Width, Height):
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
  
 def DrawGLScene():
+	global frame_counter,start_time,end_time
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 	glLoadIdentity()
 	renderLight()
@@ -810,6 +817,13 @@ def DrawGLScene():
 	displaySmoke()
 	
 	idle()
+	if end_time - start_time < 1:
+		frame_counter += 1 # count frame	
+	else:
+		start_time = time.time()
+		print(frame_counter)
+		frame_counter = 0
+	end_time = time.time()
 	glutSwapBuffers()
 
 def display():
