@@ -83,14 +83,14 @@ class Particles2:
 	Xpos = 0.0
 	Ypos = 0.0
 	Zpos = 0.0
-	Xmov = 0.0
+	Ymov = 0.0
+	Zmov = 0.0
 	Red = 0.0
 	Green = 0.0
 	Blue = 0.0
 	Direction = 0.0
 	Acceleration = 0.0
 	Scalez = 0.0
-	Visible = False
 
 class Camera:
 	def __init__(self):
@@ -735,7 +735,7 @@ def glCreateSmokeParticles():
 			smokeParticle[i].Xpos = -4.95
 			smokeParticle[i].Ypos = 0
 			smokeParticle[i].Zpos = 3
-			smokeParticle[i].Xmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
+			smokeParticle[i].Ymov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
 			smokeParticle[i].Zmov = (2 * random.random()%15 + 1) * 0.005 - (2 * random.random()%15 + 1) * 0.005
 			smokeParticle[i].Red = 1
 			smokeParticle[i].Green = 1
@@ -753,11 +753,11 @@ def glUpdateSmokeParticles():
 	for i in range(0,n):
 		glColor3f (smokeParticle[i].Red, smokeParticle[i].Green, smokeParticle[i].Blue)
 
-		smokeParticle[i].Ypos = smokeParticle[i].Ypos + smokeParticle[i].Xmov
+		smokeParticle[i].Ypos = smokeParticle[i].Ypos + smokeParticle[i].Ymov
 		smokeParticle[i].Xpos = smokeParticle[i].Xpos - smokeParticle[i].Acceleration
 		smokeParticle[i].Zpos = smokeParticle[i].Zpos + smokeParticle[i].Zmov
 
-		smokeParticle[i].Direction = smokeParticle[i].Direction + 0.5 * random.random()%11 + 1
+		smokeParticle[i].Direction = smokeParticle[i].Direction + random.random()%15 + 1
 
 		smokeParticle[i].Scalez+=0.005
 		if (smokeParticle[i].Xpos < -8 or smokeParticle[i].Xpos > 10):
